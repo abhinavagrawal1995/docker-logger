@@ -1,0 +1,116 @@
+For the technical challenge, you will implement a simple docker-based service for running
+commands within the docker-container, and to allow the caller to specify logging arguments.
+The goal of the challenge is to allow you do demonstrate to us your experience with Python,
+Unix, and docker basics.
+
+We understand that the actual development work in this challenge may be quite limited. But
+that's OK! We don't want you to spend a lot of time on this challenge and would rather see
+how you approach designing a solution conceptually. The actual internship will focus a lot on
+your coding qualities and experience in distributed systems and AI as well!
+
+
+This docker image you have to design looks as follows:
+
+The docker image defines an entry point that accepts a single command to run. This command is
+invoked by the entry point, and the std-output and std-error are stored for later printing.
+
+The entry point should
+- be written in Python 2.7,
+- log the number of bytes the command printed to stdout, if verbose logging is enabled (see
+below for details),
+- log each line the command printed to stdout, if verbose logging is enabled,
+- log the number of bytes the command printed to stderr,
+- log each line the command printed to stderr,
+- format each line it logs using a format provided to the entry point, and
+- exit with exit code of the invoked command.
+
+The entry point accept the following arguments for configuring logging:
+- "-v" or "--verbose": if set, enable verbose logging
+- "--log-format": specifies the log format
+- "--log-date-format": specifies the format of any date within log lines
+
+A few comments on the implementation:
+- you can assume that the command to invoke does not generate millions of lines of output (but
+only a few hundred),
+- you can assume that the command to invoke does not execute for more than a few seconds,
+- you may log all output of the command using the same timestamp. That is, if the command
+prints one line, sleeps for a few seconds, and then prints another line, it is OK to have
+all lines appear in the logged output using the same timestamp, and
+- you can assume that the caller provides a valid command line and that the command exists
+within the container. That is, while you have to handle errors printed by the command or
+an exit-code that indicates failure, you can assume that the command can be invoked
+correctly.
+
+These assumptions are meant to make your life easier. A good solution should still be general
+and make as few assumptions as as possible.
+
+
+What you have to return to us:
+
+Your solution should contain a file called "Dockerfile" that, when used via `docker build`,
+generates a docker image from any additional files located within the same directory. Your
+submission may contain as many files as you want, only "Dockerfile" is required.
+
+For example: your solution could contain the following three files:
+- Dockerfile
+- my_entry_point.py
+- some_other_python_module.py
+and we should be able to invoke the build as follows (in the directory these files are located):
+
+docker build . --tag your_solution:final
+
+and invoke it using:
+
+docker run your_solution:final <entry-point-options> -- <command> [command-args...]
+
+
+Example invocation/output [1]:
+
+docker run your_solution:final -v -- ls -lah / /tmp /foo
+
+02/26/2019 05:54:23 PM *prefix* Going to run command: ['ls', '-lah', '/', '/tmp', '/foo']
+02/26/2019 05:54:23 PM *prefix* Command exit code: 2
+02/26/2019 05:54:23 PM *prefix* Produced 52 bytes of stderr:
+02/26/2019 05:54:23 PM *prefix* ls: cannot access '/foo': No such file or directory
+02/26/2019 05:54:23 PM *prefix* Produced 1225 bytes of stdout:
+02/26/2019 05:54:23 PM *prefix* /:
+02/26/2019 05:54:23 PM *prefix* total 80K
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 40 root root 4.0K Feb 26 17:54 .
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 40 root root 4.0K Feb 26 17:54 ..
+02/26/2019 05:54:23 PM *prefix* -rwxr-xr-x 1 root root 0 Feb 26 17:54 .dockerenv
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 18 05:45 bin
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Apr 12 2016 boot
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 5 root root 340 Feb 26 17:54 dev
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 45 root root 4.0K Feb 26 17:54 etc
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Apr 12 2016 home
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 9 root root 4.0K Feb 26 02:52 lib
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 18 05:45 lib64
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 18 05:44 media
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 18 05:44 mnt
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 18 05:44 opt
+02/26/2019 05:54:23 PM *prefix* dr-xr-xr-x 356 root root 0 Feb 26 17:54 proc
+02/26/2019 05:54:23 PM *prefix* drwx------ 2 root root 4.0K Dec 18 05:45 root
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 9 root root 4.0K Dec 18 05:45 run
+02/26/2019 05:54:23 PM *prefix* -rwxrwxr-x 1 root root 6.7K Feb 26 03:17 run_command.py
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 28 23:25 sbin
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 2 root root 4.0K Dec 18 05:44 srv
+02/26/2019 05:54:23 PM *prefix* dr-xr-xr-x 13 root root 0 Feb 26 02:54 sys
+02/26/2019 05:54:23 PM *prefix* drwxrwxrwt 2 root root 4.0K Feb 26 02:52 tmp
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 16 root root 4.0K Feb 26 02:52 usr
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 16 root root 4.0K Feb 26 02:52 var
+02/26/2019 05:54:23 PM *prefix*
+02/26/2019 05:54:23 PM *prefix* /tmp:
+02/26/2019 05:54:23 PM *prefix* total 8.0K
+02/26/2019 05:54:23 PM *prefix* drwxrwxrwt 2 root root 4.0K Feb 26 02:52 .
+02/26/2019 05:54:23 PM *prefix* drwxr-xr-x 40 root root 4.0K Feb 26 17:54 ..
+
+Example invocation/output [2]:
+
+docker run challenge_solution:final --log-format '%(asctime)s *prefix* %(message)s' --log-date-format '%m/%d/%Y %I:%M:%S %p' -- ls -lah /
+
+
+Please submit your completed result to your recruiter and give us one day to review your work.
+Once your work has been reviewed, your recruiter will reach out to you to schedule next steps.
+
+This is your chance to shine - make sure that your submission reflects your coding skills and
+what you have learned about coding best-practices so far.
