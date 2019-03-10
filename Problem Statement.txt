@@ -1,4 +1,4 @@
-For the technical challenge, you will implement a simple docker-based service for running
+	For the technical challenge, you will implement a simple docker-based service for running
 commands within the docker-container, and to allow the caller to specify logging arguments.
 The goal of the challenge is to allow you do demonstrate to us your experience with Python,
 Unix, and docker basics.
